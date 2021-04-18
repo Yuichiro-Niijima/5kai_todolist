@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.1.0/css/all.css"
+        integrity="sha384-lKuwvrZot6UHsBSfcMvOkWwlCMgc0TaWr+30HWe3a4ltaBwTZhyTEggF5tJv8tbt" crossorigin="anonymous">
+    <link rel="stylesheet" href="style.css">
+    <title>task_content</title>
+</head>
+<body>
+    <img class="daily_background" src="背景2.jpg" alt="">
+    <header class="task_content_title">
+        <h1 style="color: aliceblue;">英単語</h1>
+        <button id="reset"><i class="fas fa-redo-alt"></i></button>
+    </header>
+
+    <main>
+        <button class="button" id ="know" value="0">
+            <i class="fas fa-thumbs-up"></i>
+        </button>
+
+        <div class="word">
+            <div class="question">
+                <p id="question">英語</p>
+            </div>
+            <div class="answer">
+                <p id="answerbox">答えを見る</p>
+                <p id="answer"></p>
+            </div>
+        </div>
+
+        <button class="button" id ="unknown" value="1">
+            <i id="unknown"class="fas fa-thumbs-down"></i>
+        </button>
+
+        <footer>
+            <div class="know">
+                <p id="count_know">0</p>
+                <p>know</p>
+            </div>
+
+            <div class="unknown">
+                <p id="count_unknown">0</p>
+                <p>unknown</p>
+            </div>
+
+
+            <div class="rest">
+                <p id="rest"></p>
+                <p>残り</p>
+            </div>
+        </footer>
+    </main>
+
+
+
+    <script>
+        window.onload = function () {
+                // 【main-script】 を実行
+                getJsonp_GAS();
+            }
+        function getJsonp_GAS() {
+            // エイジャックス　リロードせずにページの内容を変更可能。非同期処理。
+            $.ajax({     
+                type: 'GET',
+                url: 'https://script.google.com/macros/s/AKfycbxP3V_cVeELyWBPfGprGJdw03SV1BMTEjwIw4iDbYLbSqCIc5K0/exec',
+                dataType: 'jsonp',
+                jsonpCallback: 'jsondata',
+                success: function (json) {
+                    let len = json.length;
+                    let english = '';
+
+                    i = 0;
+                    know = 0;
+                    unknown=0;
+                    $("#rest").text(len - i);
+
+                     //最初の問題を表示
+                    $("#question").text(json[i].english);
+                    $("#answerbox").on("click", function () {
+                        $("#answerbox").hide();
+                        $("#answer").show();
+                        $("#answer").text(json[i].japanese);
+                    });
+
+                     // ページ読み込み、保存データ取得表示
+                    if (localStorage.getItem("memo")) {
+                        let json_get = localStorage.getItem("memo");
+                        let obj_get = JSON.parse(json_get);
+                
+                        $("#question").text(json[Number(obj_get.i)].english);
+                        $("#answer").text(json[Number(obj_get.i)].japanese);
+                        $("#count_know").text(obj_get.know);
+                        $("#count_unknown").text(obj_get.unknown);
+                        $("#rest").text(len-Number(obj_get.i));
+                    }
+
+                    // リセット
+                    $("#reset").on("click",function(){
+
+                        let json_get = localStorage.getItem("memo");
+                        let obj_get = JSON.parse(json_get);
+                        
+                        $("#question").text(json[0].english);
+                        $("#answer").text(json[0].japanese);
+                        $("#count_know").text(0);
+                        $("#count_unknown").text(0);
+                        $("#rest").text(len);
+
+                        localStorage.removeItem("memo");
+                    })
+
+
+                    //  クリック後、次の問題を表示
+                    $(".button").on("click", function(){
+                        if($(this).val()=="0"){
+                            know++;
+                            i++;
+                            $("#count_know").text(know); 
+
+                            let obj = {
+                                "i": i,
+                                "know": know,
+                                "unknown": unknown
+                            };
+
+                            let json = JSON.stringify(obj);
+                            localStorage.setItem('memo', json);
+
+
+                        } else if($(this).val() == "1"){
+                            unknown++;
+                            i++;
+                            $("#count_unknown").text(unknown);
+
+                            let obj = {
+                                "i": i,
+                                "know": know,
+                                "unknown": unknown
+                            };
+
+                            let json = JSON.stringify(obj);
+                            localStorage.setItem('memo', json);
+                        }
+                        
+                        
+                        
+                        $("#rest").text(len - i);
+                        
+
+                        if (i < len) {
+                            $("#question").text(json[i].english);
+                            $("#answer").hide();
+                            $("#answerbox").show();
+                            $("#answerbox").on("click", function () {
+                                $("#answerbox").hide();
+                                $("#answer").show();
+                                $("#answer").text(json[i].japanese);
+                            });
+                        } else {
+                            $("#question").text("終了");
+                        }
+                    })
+                }
+            });
+        }
+    </script>
+</body>
+</html>
